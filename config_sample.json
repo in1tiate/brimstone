@@ -1,0 +1,10 @@
+{
+	"token": "bot-token-here",
+	"coal": "emoji-id-here",
+	"threshold": 5,
+	"timeout": {
+		"hours":0,
+		"minutes":5,
+		"seconds":0
+	}
+}

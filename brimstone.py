@@ -6,12 +6,15 @@ import json
 intents = discord.Intents.default()
 intents.message_content = True
 
-client = discord.Client(intents=intents)
+activity = discord.Activity(type=discord.ActivityType.watching, name="the world burn")
+client = discord.Client(intents=intents, activity=activity)
 
 # brimstone database
 brimstone_db = sqlite3.connect("brimstone.db")
 cur = brimstone_db.cursor()
 cur.execute("CREATE TABLE IF NOT EXISTS brimstone(id INTEGER PRIMARY KEY)")
+
+coals_this_session = 0
 
 #configs
 with open('config.json', 'r') as file:
@@ -48,16 +51,18 @@ async def on_reaction_add(reaction, user):
     
     if not str(reaction.emoji.id) == coal_emoji:
         return
+        
     # brimstone doesnt stack
     if await get_is_already_brimstone(message.id):
         return
-
-    if reaction.count >= 1:
+    
+    if reaction.count >= brimstone_threshold:
         member = reaction.message.author
         try:
             await member.timeout(datetime.timedelta(seconds=int(config_timeout['seconds']),minutes=int(config_timeout['minutes']), hours=int(config_timeout['hours'])), reason="coalposting")
         except discord.errors.Forbidden:
             await message.reply(f'can\'t time out moderators for coalposting', mention_author=False)
+            await insert_brimstone(message.id)
             return
         await message.reply(f'timed out {member.mention} for coalposting', mention_author=False)
         await insert_brimstone(message.id)
